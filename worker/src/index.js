@@ -1,6 +1,6 @@
 // Serveur de notifications de l'appli Cycle.
 // Stocke, par abonnement, uniquement la liste des rappels à envoyer (date + texte).
-import { sendPush } from "./webpush.js";
+import { sendPush, b64u } from "./webpush.js";
 
 const SUBJECT = "https://fidelcastre44-dev.github.io/cycle/";
 const CORS = {
@@ -27,8 +27,22 @@ function cleanSchedule(list) {
     .map(x => ({ at: x.at, title: x.title.slice(0, 80), body: String(x.body || "").slice(0, 200) }));
 }
 
+// Clé VAPID générée au premier usage et conservée dans KV
+async function getVapid(env) {
+  const saved = await env.SUBS.get("vapid", "json");
+  if (saved) return saved;
+  const kp = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign"]);
+  const privateJwk = await crypto.subtle.exportKey("jwk", kp.privateKey);
+  delete privateJwk.key_ops; delete privateJwk.ext;
+  const publicKey = b64u.encode(await crypto.subtle.exportKey("raw", kp.publicKey));
+  const v = { privateJwk, publicKey };
+  await env.SUBS.put("vapid", JSON.stringify(v));
+  return v;
+}
+
 async function deliver(env, key, record, msg) {
-  const res = await sendPush(record.subscription, msg, JSON.parse(env.VAPID_PRIVATE_JWK), SUBJECT);
+  const { privateJwk } = await getVapid(env);
+  const res = await sendPush(record.subscription, msg, privateJwk, SUBJECT);
   if (res.status === 404 || res.status === 410) { await env.SUBS.delete(key); return "gone"; }
   return res.ok ? "ok" : `error ${res.status}`;
 }
@@ -38,6 +52,7 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { headers: CORS });
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/") return json({ ok: true, service: "cycle-push" });
+    if (request.method === "GET" && url.pathname === "/vapid") return json({ publicKey: (await getVapid(env)).publicKey });
     if (request.method !== "POST") return json({ error: "method" }, 405);
     let body;
     try { body = await request.json(); } catch { return json({ error: "json" }, 400); }

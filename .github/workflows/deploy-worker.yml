@@ -33,8 +33,6 @@ jobs:
           npx wrangler deploy | tee deploy.log
           URL=$(grep -oE 'https://[a-zA-Z0-9.-]+\.workers\.dev' deploy.log | head -1)
           echo "url=$URL" >> "$GITHUB_OUTPUT"
-      - name: Clé de notification
-        run: printf '%s' "${{ secrets.VAPID_PRIVATE_JWK }}" | npx wrangler secret put VAPID_PRIVATE_JWK
       - name: Publier l'adresse du serveur pour l'appli
         working-directory: .
         run: |

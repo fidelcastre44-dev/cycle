@@ -28,15 +28,14 @@ Les données du cycle restent dans le téléphone. Seuls les rappels de notifica
 | `content.js` | Textes des conseils et numéro de version |
 | `sw.js` | Hors ligne, mises à jour, réception des notifications |
 | `push-server.json` | Adresse du serveur, écrite automatiquement au déploiement |
-| `worker/` | Serveur de notifications Cloudflare (Worker + KV + tâche quotidienne) |
+| `worker/` | Serveur de notifications Cloudflare (Worker + KV + tâche quotidienne). Il génère sa propre clé de notification au premier usage. |
 
 ## Notifications : mise en route
 
-Le serveur se déploie automatiquement via GitHub Actions à chaque modification de `worker/`. Il faut trois secrets dans **Settings › Secrets and variables › Actions** du repo :
+Le serveur se déploie automatiquement via GitHub Actions à chaque modification de `worker/`. Il faut un secret (deux au plus) dans **Settings › Secrets and variables › Actions** du repo :
 
 - `CLOUDFLARE_API_TOKEN` : jeton créé sur dash.cloudflare.com › My Profile › API Tokens, modèle **Edit Cloudflare Workers**
 - `CLOUDFLARE_ACCOUNT_ID` : facultatif si le jeton ne donne accès qu'à un compte
-- `VAPID_PRIVATE_JWK` : clé privée des notifications (déjà configurée)
 
 Avant le premier déploiement, ouvrir une fois **Workers & Pages** dans le tableau de bord Cloudflare pour choisir un sous-domaine `workers.dev`.
 

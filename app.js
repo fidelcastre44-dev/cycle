@@ -500,7 +500,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ---------- Notifications push (serveur Cloudflare) ---------- */
-const VAPID_PUBLIC = "BB8VGOaHnRh5re4zp3HOSyfdy4nwZxGJjo9yjVqbsIFu_RNm9-gzEWtiGYt9Knmp3MTHzTxFtYV5GVrAhVGkkXs";
 let pushServer = null;
 async function getPushServer() {
   if (pushServer) return pushServer;
@@ -577,7 +576,8 @@ async function togglePush() {
     } else {
       const perm = await Notification.requestPermission();
       if (perm !== "granted") { toast("Notifications non autorisées"); return renderPush(); }
-      sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToBytes(VAPID_PUBLIC) });
+      const { publicKey } = await (await fetch(`${srv}/vapid`)).json();
+      sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToBytes(publicKey) });
       const r = await fetch(`${srv}/subscribe`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ subscription: sub.toJSON(), schedule: buildSchedule() }) });
       toast(r.ok ? "Notifications activées" : "Le serveur ne répond pas, réessaie plus tard");
     }
