@@ -32,12 +32,10 @@ Les données du cycle restent dans le téléphone. Seuls les rappels de notifica
 
 ## Notifications : mise en route
 
-Le serveur se déploie automatiquement via GitHub Actions à chaque modification de `worker/`. Il faut un secret (deux au plus) dans **Settings › Secrets and variables › Actions** du repo :
+Le serveur est en ligne sur https://cycle-push.fidelcastre44.workers.dev (envoi des rappels chaque matin vers 8 h). Pour le redéployer après une modification de `worker/` : `cd worker && npx wrangler deploy` avec un jeton Cloudflare, ou lancer le workflow « Déployer le serveur de notifications » dans l'onglet Actions, qui demande ce secret dans **Settings › Secrets and variables › Actions** :
 
 - `CLOUDFLARE_API_TOKEN` : jeton créé sur dash.cloudflare.com › My Profile › API Tokens, modèle **Edit Cloudflare Workers**
 - `CLOUDFLARE_ACCOUNT_ID` : facultatif si le jeton ne donne accès qu'à un compte
-
-Avant le premier déploiement, ouvrir une fois **Workers & Pages** dans le tableau de bord Cloudflare pour choisir un sous-domaine `workers.dev`.
 
 ## Mettre à jour l'appli
 

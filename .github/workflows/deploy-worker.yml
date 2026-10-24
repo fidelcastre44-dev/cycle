@@ -1,9 +1,7 @@
 name: Déployer le serveur de notifications
 
+# Lancement manuel uniquement (onglet Actions), nécessite le secret CLOUDFLARE_API_TOKEN
 on:
-  push:
-    branches: [main]
-    paths: ["worker/**", ".github/workflows/deploy-worker.yml"]
   workflow_dispatch:
 
 permissions:
