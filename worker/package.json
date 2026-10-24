@@ -1,0 +1,6 @@
+{
+  "name": "cycle-push",
+  "private": true,
+  "type": "module",
+  "devDependencies": { "wrangler": "^4" }
+}

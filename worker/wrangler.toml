@@ -1,0 +1,12 @@
+name = "cycle-push"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+workers_dev = true
+
+[[kv_namespaces]]
+binding = "SUBS"
+id = "9471587e576a47fcabe91bdce8b3e257"
+
+[triggers]
+# Tous les matins vers 8 h 13 (heure de Paris en hiver, 9 h 13 en été)
+crons = ["13 7 * * *"]

@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cycle</title>
+<meta name="description" content="Suivi du cycle et conseils par phase">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cycle">
+<meta name="theme-color" content="#EFEAF2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C1626" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="update-banner" class="update" hidden>
+  <span>Nouvelle version disponible</span>
+  <button id="update-btn" type="button">Recharger</button>
+</div>
+
+<!-- Onboarding -->
+<section id="onboarding" class="screen onboarding" hidden>
+  <div class="ob-inner">
+    <svg class="ob-mark" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="38" fill="none" stroke="var(--line)" stroke-width="8"/>
+      <circle cx="50" cy="50" r="38" fill="none" stroke="var(--menstruelle)" stroke-width="8" stroke-dasharray="43 196" transform="rotate(-90 50 50)" stroke-linecap="round"/>
+      <circle cx="50" cy="50" r="38" fill="none" stroke="var(--folliculaire)" stroke-width="8" stroke-dasharray="0 48 60 131" transform="rotate(-90 50 50)" stroke-linecap="round"/>
+      <circle cx="50" cy="50" r="38" fill="none" stroke="var(--ovulatoire)" stroke-width="8" stroke-dasharray="0 113 30 96" transform="rotate(-90 50 50)" stroke-linecap="round"/>
+      <circle cx="50" cy="50" r="38" fill="none" stroke="var(--luteale)" stroke-width="8" stroke-dasharray="0 148 88 3" transform="rotate(-90 50 50)" stroke-linecap="round"/>
+    </svg>
+    <h1 class="serif">Bienvenue</h1>
+    <p class="muted">Trois réponses pour commencer. Tout reste sur ton téléphone.</p>
+    <form id="ob-form" class="fields">
+      <label class="field">
+        <span>Début de tes dernières règles</span>
+        <input type="date" id="ob-start" required>
+      </label>
+      <label class="field">
+        <span>Durée habituelle du cycle</span>
+        <div class="stepper" data-min="21" data-max="40">
+          <button type="button" class="step" data-d="-1" aria-label="Moins">−</button>
+          <output id="ob-cycle">28</output><small>jours</small>
+          <button type="button" class="step" data-d="1" aria-label="Plus">+</button>
+        </div>
+      </label>
+      <label class="field">
+        <span>Durée habituelle des règles</span>
+        <div class="stepper" data-min="2" data-max="10">
+          <button type="button" class="step" data-d="-1" aria-label="Moins">−</button>
+          <output id="ob-period">5</output><small>jours</small>
+          <button type="button" class="step" data-d="1" aria-label="Plus">+</button>
+        </div>
+      </label>
+      <button class="btn primary" type="submit">Commencer</button>
+    </form>
+    <p class="fine">Les prévisions sont indicatives. Cette appli n'est pas un moyen de contraception et ne remplace pas un avis médical.</p>
+    <p id="install-hint" class="install-hint" hidden>Pour l'installer : bouton Partager de Safari, puis « Sur l'écran d'accueil ».</p>
+  </div>
+</section>
+
+<main id="app" hidden>
+
+  <!-- Aujourd'hui -->
+  <section id="view-today" class="screen view" data-view="today">
+    <header class="topbar">
+      <span id="today-date" class="muted"></span>
+      <button class="icon-btn" id="open-settings" type="button" aria-label="Réglages">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+    </header>
+
+    <div class="orbit-wrap">
+      <svg id="orbit" class="orbit" viewBox="0 0 300 300" role="img" aria-labelledby="orbit-label"></svg>
+      <div class="orbit-center" id="orbit-label">
+        <span class="day-label">Jour</span>
+        <span class="day-num serif" id="day-num">–</span>
+        <span class="day-of muted" id="day-of"></span>
+      </div>
+    </div>
+
+    <h2 class="phase-name serif" id="phase-name"></h2>
+    <p class="countdown" id="countdown"></p>
+
+    <div id="spm-banner" class="spm-banner" hidden>
+      <strong>Fenêtre SPM</strong>
+      <span id="spm-text"></span>
+    </div>
+
+    <button class="btn primary big" id="period-btn" type="button"></button>
+
+    <div class="today-tips">
+      <h3 class="serif">Pour aujourd'hui</h3>
+      <ul id="today-tips" class="tips"></ul>
+      <button class="link" type="button" data-go="advice">Voir tous les conseils</button>
+    </div>
+
+    <p id="backup-nudge" class="nudge" hidden>Pense à sauvegarder tes données dans les réglages.</p>
+  </section>
+
+  <!-- Calendrier -->
+  <section id="view-calendar" class="screen view" data-view="calendar" hidden>
+    <header class="cal-head">
+      <button class="icon-btn" id="cal-prev" type="button" aria-label="Mois précédent">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+      <h2 class="serif" id="cal-title"></h2>
+      <button class="icon-btn" id="cal-next" type="button" aria-label="Mois suivant">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+    </header>
+    <div class="cal-dow" aria-hidden="true"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <ul class="legend">
+      <li><i class="sw menstruelle"></i>Règles</li>
+      <li><i class="sw predicted"></i>Prévues</li>
+      <li><i class="sw folliculaire"></i>Folliculaire</li>
+      <li><i class="sw ovulatoire"></i>Ovulation</li>
+      <li><i class="sw luteale"></i>Lutéale</li>
+      <li><i class="sw spm"></i>SPM</li>
+    </ul>
+    <p class="fine">Touche un jour passé pour ajouter ou retirer un jour de règles.</p>
+  </section>
+
+  <!-- Conseils -->
+  <section id="view-advice" class="screen view" data-view="advice" hidden>
+    <h1 class="serif page-title">Conseils</h1>
+    <div id="advice-list"></div>
+    <div class="consult">
+      <h3 class="serif">Quand consulter</h3>
+      <ul id="consult-list"></ul>
+    </div>
+    <p class="fine">Repères généraux, ne remplacent pas un avis médical.</p>
+  </section>
+
+  <!-- Retours -->
+  <section id="view-feedback" class="screen view" data-view="feedback" hidden>
+    <h1 class="serif page-title">Retours</h1>
+    <p class="muted">Une idée, un conseil qui manque, un truc qui bug ? Note-le ici, on en tient compte dans les prochaines versions.</p>
+    <form id="fb-form" class="fields">
+      <div class="segmented" role="radiogroup" aria-label="Type de retour">
+        <label><input type="radio" name="cat" value="Idée" checked><span>Idée</span></label>
+        <label><input type="radio" name="cat" value="Contenu"><span>Contenu</span></label>
+        <label><input type="radio" name="cat" value="Bug"><span>Bug</span></label>
+        <label><input type="radio" name="cat" value="Autre"><span>Autre</span></label>
+      </div>
+      <textarea id="fb-text" rows="5" placeholder="J'aimerais pouvoir…" required></textarea>
+      <button class="btn primary" type="submit">Envoyer</button>
+    </form>
+    <div class="fb-history">
+      <div class="fb-history-head">
+        <h3 class="serif">Mes retours</h3>
+        <button class="link" id="fb-share-all" type="button">Tout partager</button>
+      </div>
+      <ul id="fb-list" class="fb-list"></ul>
+    </div>
+  </section>
+
+  <!-- Réglages -->
+  <section id="view-settings" class="screen view" data-view="settings" hidden>
+    <header class="topbar">
+      <button class="link back" type="button" data-go="today">Retour</button>
+    </header>
+    <h1 class="serif page-title">Réglages</h1>
+    <div class="fields">
+      <label class="field">
+        <span>Durée habituelle du cycle</span>
+        <div class="stepper" data-min="21" data-max="40" data-key="cycleLen">
+          <button type="button" class="step" data-d="-1" aria-label="Moins">−</button>
+          <output></output><small>jours</small>
+          <button type="button" class="step" data-d="1" aria-label="Plus">+</button>
+        </div>
+      </label>
+      <label class="field">
+        <span>Durée habituelle des règles</span>
+        <div class="stepper" data-min="2" data-max="10" data-key="periodLen">
+          <button type="button" class="step" data-d="-1" aria-label="Moins">−</button>
+          <output></output><small>jours</small>
+          <button type="button" class="step" data-d="1" aria-label="Plus">+</button>
+        </div>
+      </label>
+      <div class="field">
+        <span>Fenêtre SPM avant les règles</span>
+        <div class="segmented" role="radiogroup" id="pms-seg">
+          <label><input type="radio" name="pms" value="5"><span>5 j</span></label>
+          <label><input type="radio" name="pms" value="7"><span>7 j</span></label>
+          <label><input type="radio" name="pms" value="10"><span>10 j</span></label>
+        </div>
+      </div>
+      <label class="field toggle">
+        <span>Afficher les conseils pour l'entourage</span>
+        <input type="checkbox" id="entourage-toggle">
+      </label>
+      <p class="fine">Quand plusieurs cycles sont enregistrés, l'appli utilise leur moyenne plutôt que ces valeurs.</p>
+    </div>
+
+    <h3 class="serif">Notifications</h3>
+    <p class="muted small" id="push-status">Un rappel le matin au début de la fenêtre SPM et la veille des règles prévues.</p>
+    <div class="row">
+      <button class="btn primary" id="push-btn" type="button">Activer les notifications</button>
+      <button class="btn" id="push-test" type="button" hidden>Tester</button>
+    </div>
+
+    <h3 class="serif">Sauvegarde</h3>
+    <p class="muted small">Supprimer l'icône de l'appli efface ses données. Exporte une copie de temps en temps.</p>
+    <div class="row">
+      <button class="btn" id="export-btn" type="button">Exporter</button>
+      <label class="btn">Importer<input type="file" id="import-input" accept="application/json,.json" hidden></label>
+    </div>
+
+    <h3 class="serif">Nouveautés</h3>
+    <div id="changelog"></div>
+
+    <button class="btn danger" id="reset-btn" type="button">Tout effacer</button>
+    <p class="fine" id="version"></p>
+  </section>
+
+  <nav class="tabbar" aria-label="Navigation">
+    <button type="button" data-go="today" class="tab active">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="2" class="fill"/></svg>
+      <span>Aujourd'hui</span>
+    </button>
+    <button type="button" data-go="calendar" class="tab">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>
+      <span>Calendrier</span>
+    </button>
+    <button type="button" data-go="advice" class="tab">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20c-4-2.5-7-5.5-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 3.5-3 6.5-7 9z"/></svg>
+      <span>Conseils</span>
+    </button>
+    <button type="button" data-go="feedback" class="tab">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H9l-4 4z"/></svg>
+      <span>Retours</span>
+    </button>
+  </nav>
+</main>
+
+<!-- Feuille de saisie des règles -->
+<dialog id="period-dialog" class="sheet">
+  <form method="dialog" id="period-form">
+    <h3 class="serif" id="pd-title"></h3>
+    <label class="field">
+      <span id="pd-label"></span>
+      <input type="date" id="pd-date" required>
+    </label>
+    <div class="row">
+      <button class="btn" value="cancel" type="submit" formnovalidate>Annuler</button>
+      <button class="btn primary" value="ok" type="submit" id="pd-ok">Enregistrer</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="content.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
